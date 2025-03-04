@@ -1,0 +1,6 @@
+condition : haze
+humidity : 18
+temperature : 301.21
+condition : haze
+humidity : 18
+temperature : 301.21
