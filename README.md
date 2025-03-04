@@ -114,3 +114,48 @@ Issues:
 * input() returns a string, so arithmetic operations will fail.
 * The + operator in print("Final Price is: " + final_price) will cause an error.
 Fix the script and handle errors gracefully.
+
+**Topic - Working with Dates & Time**
+
+Problem Statement:
+Build a simple Appointment Scheduler that:
+Allows users to schedule appointments (Date, Time, Description).
+Prevents overlapping appointments.
+Displays upcoming appointments.
+Sample Interaction:
+```log
+1. Schedule Appointment
+2. View Appointments
+Enter choice: 1
+Enter Date (YYYY-MM-DD): 2025-03-01
+Enter Time (HH:MM): 10:00
+Enter Description: Doctor's Visit
+Appointment added successfully!
+```
+ Save and retrieve appointments from a file.
+
+**Topic - Mini E-Commerce System**
+
+Problem Statement:
+Develop a simple Shopping Cart System where:
+Users can add and remove products.
+It calculates the total price.
+Applies discounts if a discount code is provided.
+Example Interaction:
+```log
+1. Add Product
+2. Remove Product
+3. View Cart
+4. Checkout
+Enter choice: 1
+Enter Product Name: Laptop
+Enter Price: 50000
+Product added!
+Enter choice: 3
+Cart:
+- Laptop: ₹50000
+Total: ₹50000
+Enter choice: 4
+Enter Discount Code (if any): SAVE10
+Final Price after Discount: ₹45000
+```
