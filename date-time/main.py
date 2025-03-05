@@ -25,7 +25,7 @@ def view_appointment():
                 print("No appointments scheduled.")
                 return
             
-            print("\nScheduled Appointments:")
+            print("Scheduled Appointments:")
             for appointment in appointments:
                 print(f"Date: {appointment[0]}, Time: {appointment[1]}, Description: {appointment[2]}")
     
