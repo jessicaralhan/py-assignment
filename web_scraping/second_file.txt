@@ -4,3 +4,25 @@ temperature : 301.21
 condition : haze
 humidity : 18
 temperature : 301.21
+condition : few clouds
+humidity : 15
+temperature : 301.22
+condition : scattered clouds
+humidity : 29
+temperature : 293.99
+condition : few clouds
+humidity : 15
+temperature : 301.22
+
+Date: 2025-03-10 12:33:18
+City: Mumbai
+Condition: smoke
+Humidity: 32%
+Temperature: 36.01°C
+----------------------------------------
+
+Date: 2025-03-10 12:33:56
+City: Delhi
+Condition: haze
+Humidity: 28
+Temperature: 30.06°C
