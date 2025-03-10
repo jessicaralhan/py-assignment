@@ -1,35 +1,39 @@
 import csv 
+import os
 
-
-with open("record_managemnet.csv", "w", newline='') as csvfile:
-    writer= csv.writer(csvfile)
-    writer.writerow(["Name ", "Roll no. ", "Marks"])
+file_exists = os.path.exists("record_management.csv")
+with open("record_management.csv", "a", newline='') as csvfile:
+    writer = csv.writer(csvfile)
+    
+    if not file_exists:
+        writer.writerow(["Name", "Roll no.", "Marks"])
 
 def add_student():
     name = input("enter name -")
     roll_no = input("enter roll no. -")
     marks = input("enter marks -")
 
-    with open("record_managemnet.csv", "a", newline='') as file:
+    with open("record_management.csv", "a", newline='') as file:
         writer = csv.writer(file)
         writer.writerow([name, roll_no, marks])
 
-
+# update only the records whose marks are updated 
 def update_marks():
     roll_no = input("enter roll no. ")
     new_marks = input("enter marks")
     rows = []
     updated = False
 
-    with open("record_managemnet.csv", "r") as file:
+    with open("record_management.csv", "r") as file:
         reader = csv.reader(file)
         for row in reader:
-            if row and row[1] == roll_no:
+            if row[1] == roll_no:
                 row[2] = new_marks
                 updated = True
             rows.append(row)
+        
     if updated:
-        with open("record_managemnet.csv", "w", newline='') as file:
+        with open("record_management.csv", "w", newline='') as file:
             writer= csv.writer(file)
             writer.writerows(rows)
         print("updated")
@@ -40,7 +44,7 @@ def delete_student():
     roll_no = input("enter roll no. ")
     rows = []
     deleted = False
-    with open("record_managemnet.csv", "r") as file:
+    with open("record_management.csv", "r") as file:
         reader = csv.reader(file)
         for row in reader:
             if row and row[1] != roll_no:
@@ -48,7 +52,7 @@ def delete_student():
             else:
                 deleted = True
     if deleted:
-        with open("record_managemnet.csv", "w", newline='') as file:
+        with open("record_management.csv", "w", newline='') as file:
             writer= csv.writer(file)
             writer.writerow(rows)
         print("deleted")
@@ -56,7 +60,7 @@ def delete_student():
         print("not deleted")
             
 def view_student():
-    with open("record_managemnet.csv", "r") as file:
+    with open("record_management.csv", "r") as file:
         reader = csv.reader(file)
         for row in reader:
             print(row)

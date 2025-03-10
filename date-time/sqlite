@@ -1,0 +1,82 @@
+import sqlite3
+con = sqlite3.connect("tutorial.db")
+cur = con.cursor()
+cur.execute("CREATE TABLE appointment(date TEXT, time TEXT, description TEXT)")
+con.commit()
+con.close()
+
+
+def create_table():
+    conn = sqlite3.connect("appointments.db")
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS appointments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT,
+                        time TEXT,
+                        description TEXT)''')
+    conn.commit()
+    conn.close()
+
+def schedule_appointment():
+    date = input("Enter date (YYYY-MM-DD): ")
+    time = input("Enter time (HH:MM): ")
+    description = input("Enter description: ")
+    
+    conn = sqlite3.connect("appointments.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO appointments (date, time, description) VALUES (?, ?, ?)", (date, time, description))
+    conn.commit()
+    conn.close()
+    print("Appointment added successfully.")
+
+def view_appointments():
+    conn = sqlite3.connect("appointments.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT date, time, description FROM appointments")
+    appointments = cursor.fetchall()
+    conn.close()
+    
+    if not appointments:
+        print("No appointments scheduled.")
+        return
+    
+    print("Scheduled Appointments:")
+    for appointment in appointments:
+        print(f"Date: {appointment[0]}, Time: {appointment[1]}, Description: {appointment[2]}")
+
+def main():
+    create_table()
+    while True:
+        print("\nSelect an operation:")
+        print("1. Schedule appointment")
+        print("2. View appointments")
+        print("3. Exit")
+        
+        choice = input("Enter choice: ")
+        if choice == '1':
+            schedule_appointment()
+        elif choice == '2':
+            view_appointments()
+        elif choice == '3':
+            break
+        else:
+            print("Invalid choice")
+
+if __name__ == "__main__":
+    main()
+
+
+
+con = sqlite3.connect("tutorial.db")
+cur = con.cursor()
+
+
+
+# import sqlite3
+
+# try:
+#     with sqlite3.connect(':memory:') as conn:
+#         # interact with database
+#         pass
+# except sqlite3.OperationalError as e:
+#     print("Failed to open database:", e)

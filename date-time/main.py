@@ -1,5 +1,4 @@
 import csv
- 
 
 with open("appointment.csv", "w", newline="") as csvfile:
     writer = csv.writer(csvfile)
@@ -40,6 +39,4 @@ while True:
         print("Appoinment added successfully")
     elif choice == '2':
         view_appointment()
-
-
 
