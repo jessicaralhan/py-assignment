@@ -1,28 +1,31 @@
 import sqlite3
-from datetime import datetime
-import datetime 
-
-
-# 1) Validations for all fields when we are creating an appointment. 
-def validate_date(date_str):
+import datetime
+from dateutil.parser import parser
+from datetime import datetime as dt
+ 
+def validate_date_and_time(date, time):
+    # 1) Date should be a valid calender date
     try:
-        datetime.strptime(date_str, "%Y-%m-%d")
-        return True
-    except ValueError:
-        return False
-    
-def validate_time(time_str):
+        dt.strptime(date, '%Y-%m-%d')  # Validate date format
+    except ValueError as e:
+        return str(e)
+    # 2) Time should be valid 
     try:
-        datetime.strptime(time_str, "%H:%M")
-        return True
-    except ValueError:
-        return False
+        dt.strptime(time, '%H:%M') # Valid Time format
+    except ValueError as e:
+        return str(e)
+    # 3) Date should be greater than current date 
+    current_date = datetime.datetime.now()
+    user_date_time = datetime.datetime.strptime(date + time, "%Y-%m-%d%H:%M")  # 2024-11-11 12:30
+    if user_date_time > current_date:  #true
+        return None  # return no error
+    else:
+        return "Date should be a future date"  # return error
+
 # open the connection 
 # any operation (update, create, select, delete) 
 # commit and close the connection 
 def connection_helper(statement, params = ()):
-    print("statement is ", statement)
-    print("params are", params)
     conn = sqlite3.connect("appointments.db")
 
     cursor = conn.cursor()
@@ -30,14 +33,13 @@ def connection_helper(statement, params = ()):
         cursor.execute(statement, params)
         conn.commit()
     except sqlite3.Error as er:
-        print('SQLite error: %s' % (' '.join(er.args)))
+        return 
     if "SELECT" in statement:
         return cursor.fetchall()
     conn.close()
 
     return
 
-    
 def create_table():
     connection_helper('''CREATE TABLE IF NOT EXISTS appointments (
                         unique_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,39 +51,34 @@ def create_table():
  
 def schedule_appointment():
     name = input("Enter name : ")
-    date = "2020-12-20" #input("Enter date (YYYY-MM-DD): ")
-    time = "19:30" #input("Enter time (HH:MM): ")
+    date = input("Enter date (YYYY-MM-DD): ")
+    time = input("Enter time (HH:MM): ")                                                                  
+
+    error = validate_date_and_time(date,time)
+    if error:
+        print("cannot proceed further", error)
+        return      
     existing_appointment = connection_helper("SELECT * FROM appointments WHERE time = ? AND date = ?", (time, date))
-    print(existing_appointment)
-    if existing_appointment:
+    if existing_appointment:                                                                      
         print("not availble")
         return
     description = input("Enter description: ")
     appointment_with = input("Who do you have an appointment with : ")
     
-    
     connection_helper("INSERT INTO appointments (name, date, time, description, appointment_with) VALUES (?, ?, ?, ?, ?)", (name, date, time, description, appointment_with))
-    
     print("Appointment added successfully.")
 
-  
 def update_appointments():
-    current_date = datetime.datetime.now()
-    print(current_date)
     appointment_id = input("Enter appointment id: ")
-    # appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?",(appointment_id))
-    # if appointment_id not in appointments:
-    #     print("not exist")
-    #     return
-    #user_date = "2025-3-13 12:30"
-    user_date = input("Enter new date :")  # "2025-3-14"
-    user_time = input("Enter new time :")  # "13:30"
-    # 
-    user_date_time = datetime.datetime.strptime(user_date + user_time, "%Y-%m-%d%H:%M")
-    if user_date_time > current_date:
-        print("user date is greater than current date so should be added")
-    else:
-        print("should not be added")
+    appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?",(appointment_id))
+    if appointments:
+        print("Appointment does not exist")
+        return
+    user_date = input("Enter new date :")
+    user_time = input("Enter new time :")
+    error = validate_date_and_time(user_date, user_time)
+    if error:
+        print("Cannot proceed further:", error)
         return
     
     new_description = input("Enter new description:")
@@ -90,11 +87,7 @@ def update_appointments():
 
     
 def view_appointments():
-    conn = sqlite3.connect("appointments.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT name, date, time, description FROM appointments")
-    appointments = cursor.fetchall()
-    conn.close()
+    appointments = connection_helper("SELECT name, date, time, description FROM appointments")
     
     if not appointments:
         print("No appointments scheduled.")
