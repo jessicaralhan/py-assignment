@@ -16,11 +16,11 @@ def validate_date_and_time(date, time):
         return str(e)
     # 3) Date should be greater than current date 
     current_date = datetime.datetime.now()
-    user_date_time = datetime.datetime.strptime(date + time, "%Y-%m-%d%H:%M")  # 2024-11-11 12:30
-    if user_date_time > current_date:  #true
-        return None  # return no error
+    user_date_time = datetime.datetime.strptime(date + time, "%Y-%m-%d%H:%M")  
+    if user_date_time > current_date:  
+        return None  
     else:
-        return "Date should be a future date"  # return error
+        return "Date should be a future date"  
 
 # open the connection 
 # any operation (update, create, select, delete) 
