@@ -22,13 +22,14 @@ def validate_date_and_time(date, time):
     else:
         return "Date should be a future date"  
     
-def slots_available(appointment_with, date):
-    slots = connection_helper("SELECT time FROM appointments WHERE appointment_with = ? AND date = ?", (appointment_with, date))
+def slots_available(appointment_with, date, db_connection):
+    slots = connection_helper("SELECT time FROM appointments WHERE appointment_with = ? AND date = ?", db_connection, (appointment_with, date))
     available_slots = ["9:30", "10:30", "11:30", "12:30", "14:30", "15:30", "16:30"]
-
+    if slots is None:
+        return available_slots
     for slot in slots: 
         available_slots.remove(slot[0])  
-
+        
     return available_slots
 
 def select_appointment_person():
@@ -60,22 +61,18 @@ def select_appointment_person():
         break
     return appointment_with
 
-def connection_helper(statement, params = ()):
-    conn = sqlite3.connect("appointments.db")
-
-    cursor = conn.cursor()
+def connection_helper(statement, db_connection, params = ()):
+    cursor = db_connection.cursor()
     try:
         cursor.execute(statement, params)
-        conn.commit()
+        db_connection.commit()
     except sqlite3.Error as er:
         return 
     if "SELECT" in statement:
         return cursor.fetchall()
-    conn.close()
-
     return 
 
-def create_table():
+def create_table(db_connection):
 
     connection_helper('''CREATE TABLE IF NOT EXISTS appointments (
                         unique_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,47 +80,47 @@ def create_table():
                         date TEXT,
                         time TEXT,
                         description TEXT,
-                        appointment_with TEXT )''')
+                        appointment_with TEXT )''', db_connection)
  
  
-def schedule_appointment():
+def schedule_appointment(db_connection):
     name = input("Enter name : ")
     appointment_with = select_appointment_person()
     date = input("Enter date (YYYY-MM-DD): ")
-    slots = slots_available(appointment_with, date)
+    
+    slots = slots_available(appointment_with, date, db_connection)
       
     while True:  
         print(f"Available slots are {slots} please choose one")
         time = input("Enter time (HH:MM): ")
+        error = validate_date_and_time(date,time)
+        if error:
+            print("cannot proceed further", error)
+            return
         if time in slots:
             break
         else:
             print("Slot is not available. Please select one from above -")
-           
-    error = validate_date_and_time(date,time)
-    if error:
-        print("cannot proceed further", error)
-        return      
-    existing_appointment = connection_helper("SELECT * FROM appointments WHERE appointment_with = ? AND time = ? AND date = ?", (appointment_with, time, date))
+               
+    existing_appointment = connection_helper("SELECT * FROM appointments WHERE appointment_with = ? AND time = ? AND date = ?", db_connection, (appointment_with, time, date))
     if existing_appointment:                                                                      
-        available = slots_available(appointment_with, date)
+        available = slots_available(appointment_with, date, db_connection)
         print("This slot is not available. Available slots are :", available)
         return
     description = input("Enter description: ")
     
-    connection_helper("INSERT INTO appointments (name, date, time, description, appointment_with) VALUES (?, ?, ?, ?, ?)", (name, date, time, description, appointment_with))
+    connection_helper("INSERT INTO appointments (name, date, time, description, appointment_with) VALUES (?, ?, ?, ?, ?)", db_connection, (name, date, time, description, appointment_with))
     print("Appointment added successfully.")
 
-def update_appointments():
+def update_appointments(db_connection):
     appointment_id = input("Enter appointment id: ")
-    appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?",(appointment_id))
-    print("this is in appointments", appointments)
+    appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?",db_connection, (appointment_id))
     if not appointments:
         print("Appointment does not exist")
         return
     up_appointment_with = select_appointment_person()
     user_date = input("Enter new date :")
-    slots = slots_available(up_appointment_with, user_date)
+    slots = slots_available(up_appointment_with, user_date, db_connection)
       
     while True:  
         print(f"Available slots are {slots} please choose one")
@@ -137,18 +134,18 @@ def update_appointments():
     if error:
         print("Cannot proceed further:", error)
         return
-    existing_appointment = connection_helper("SELECT * FROM appointments WHERE appointment_with = ? AND time = ? AND date = ?", (up_appointment_with, user_time, user_date))
+    existing_appointment = connection_helper("SELECT * FROM appointments WHERE appointment_with = ? AND time = ? AND date = ?", db_connection, (up_appointment_with, user_time, user_date))
     if existing_appointment:  
-        available = slots_available(up_appointment_with, user_date) 
+        available = slots_available(up_appointment_with, user_date, db_connection) 
         print("This slot is not available. Available slots are :", available)
         return
     new_description = input("Enter new description:")
-    connection_helper("UPDATE appointments set appointment_with = ?, date = ?, time = ?, description = ? WHERE unique_id = ?",(up_appointment_with, user_date, user_time, new_description, appointment_id))
+    connection_helper("UPDATE appointments set appointment_with = ?, date = ?, time = ?, description = ? WHERE unique_id = ?",db_connection, (up_appointment_with, user_date, user_time, new_description, appointment_id))
     print("updated successfully")
     
     
-def view_appointments():
-    appointments = connection_helper("SELECT name, date, time, description, appointment_with FROM appointments")
+def view_appointments(db_connection):
+    appointments = connection_helper("SELECT name, date, time, description, appointment_with FROM appointments", db_connection)
     
     if not appointments:
         print("No appointments scheduled.")
@@ -159,7 +156,8 @@ def view_appointments():
         print(f"Name: {appointment[0]}, Date: {appointment[1]}, Time: {appointment[2]}, Description: {appointment[3]}, Appointment_with: {appointment[4]}")
 
 def main():
-    create_table()
+    db_connection = sqlite3.connect("appointments.db")  
+    create_table(db_connection)  
     while True:
         print("\nSelect an operation:")
         print("1. Schedule appointment")
@@ -169,15 +167,17 @@ def main():
         
         choice = input("Enter choice: ")
         if choice == '1':
-            schedule_appointment()
+            schedule_appointment(db_connection)
         elif choice == '2':
-            update_appointments()
+            update_appointments(db_connection)
         elif choice == '3':
-            view_appointments()
+            view_appointments(db_connection)
         elif choice == '4':
+            db_connection.close()
             break
         else:
             print("Invalid choice")
+         
 
 if __name__ == "__main__":
     main()
