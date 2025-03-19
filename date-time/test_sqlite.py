@@ -2,7 +2,7 @@ import pytest
 import sqlite3
 from unittest.mock import patch
 from sqlite import schedule_appointment, update_appointments
-import sys
+
 
 
 def mock_connection_helper(query, params=()):
@@ -23,7 +23,7 @@ class TestAppointments:
         cursor = self.conn.cursor()
         cursor.execute("""
         CREATE table appointments(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    unique_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,
                     date TEXT,
                     time TEXT,
@@ -120,3 +120,53 @@ class TestAppointments:
         result = cursor.fetchone()
 
         assert result is None
+
+    def test_update_appointment(self, monkeypatch, db_connection):
+        test_inputs = iter(["Aay", "2", "2025-12-12", "14:30", "Work"])
+        monkeypatch.setattr("builtins.input", lambda _: next(test_inputs)) 
+
+        schedule_appointment(db_connection)
+
+        cursor = db_connection.cursor()
+
+        cursor.execute("SELECT * FROM appointments WHERE name = ?", ("Aay",))
+        result = cursor.fetchone()
+
+        assert result is not None
+        assert result[1] == "Aay"
+        assert result[2] == "2025-12-12"
+        assert result[3] == "14:30"
+        assert result[4] == "Work"
+        assert result[5] == "Mr. Young"
+
+        test_inputs = iter(["1", "4", "2025-11-02", "12:30", "Meet"])
+        monkeypatch.setattr("builtins.input", lambda _: next(test_inputs)) 
+
+        update_appointments(db_connection)
+
+        cursor.execute("SELECT * FROM appointments WHERE name = ?", ("Aay",))
+        result = cursor.fetchone()
+        
+        assert result is not None
+        assert result[1] == "Aay"
+        assert result[2] == "2025-11-02"
+        assert result[3] == "12:30"
+        assert result[4] == "Meet"
+        assert result[5] == "Mr Checo Perez"
+
+
+    def test_update_appointment_not_exist(self, monkeypatch, db_connection):
+        
+        cursor = db_connection.cursor()
+
+        test_inputs = iter(["3"])
+        monkeypatch.setattr("builtins.input", lambda _: next(test_inputs)) 
+
+        update_appointments(db_connection)
+
+        cursor.execute("SELECT * FROM appointments WHERE unique_id = ?", ("3",))
+        result = cursor.fetchone()
+        
+        assert result is None
+        
+    

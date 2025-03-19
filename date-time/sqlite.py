@@ -1,6 +1,5 @@
 import sqlite3
 import datetime
-from dateutil.parser import parser
 from datetime import datetime as dt
  
 def validate_date_and_time(date, time):
@@ -114,7 +113,8 @@ def schedule_appointment(db_connection):
 
 def update_appointments(db_connection):
     appointment_id = input("Enter appointment id: ")
-    appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?",db_connection, (appointment_id))
+    appointments = connection_helper("SELECT * FROM appointments WHERE unique_id = ?", db_connection, (appointment_id,))
+
     if not appointments:
         print("Appointment does not exist")
         return
